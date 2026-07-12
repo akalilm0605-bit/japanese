@@ -26,8 +26,8 @@
         <div id="meaning" class="meaning" aria-live="polite">加载中…</div>
 
         <form id="answer-form" novalidate>
-          <label for="word-input">请分别填写日语汉字和假名</label>
-          <div class="answer-fields">
+          <label id="answer-label" for="word-input">请分别填写日语汉字和假名</label>
+          <div id="answer-fields" class="answer-fields">
             <input
               id="word-input"
               name="word"
@@ -40,7 +40,7 @@
               placeholder="汉字：学校"
               aria-label="日语汉字"
             />
-            <span class="answer-divider" aria-hidden="true">/</span>
+            <span id="answer-divider" class="answer-divider" aria-hidden="true">/</span>
             <input
               id="reading-input"
               name="reading"
