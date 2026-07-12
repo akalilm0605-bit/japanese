@@ -26,19 +26,35 @@
         <div id="meaning" class="meaning" aria-live="polite">加载中…</div>
 
         <form id="answer-form" novalidate>
-          <label for="answer-input">请输入“日语汉字/假名”</label>
-          <input
-            id="answer-input"
-            name="answer"
-            type="text"
-            lang="ja"
-            inputmode="text"
-            autocomplete="off"
-            autocapitalize="off"
-            spellcheck="false"
-            placeholder="例如：学校/がっこう"
-          />
-          <p id="input-hint" class="input-hint">汉字和假名都要填写，用“/”隔开</p>
+          <label for="word-input">请分别填写日语汉字和假名</label>
+          <div class="answer-fields">
+            <input
+              id="word-input"
+              name="word"
+              type="text"
+              lang="ja"
+              inputmode="text"
+              autocomplete="off"
+              autocapitalize="off"
+              spellcheck="false"
+              placeholder="汉字：学校"
+              aria-label="日语汉字"
+            />
+            <span class="answer-divider" aria-hidden="true">/</span>
+            <input
+              id="reading-input"
+              name="reading"
+              type="text"
+              lang="ja"
+              inputmode="text"
+              autocomplete="off"
+              autocapitalize="off"
+              spellcheck="false"
+              placeholder="假名：がっこう"
+              aria-label="日语假名"
+            />
+          </div>
+          <p id="input-hint" class="input-hint">中间的“/”已经固定，只需填写两边</p>
           <button id="submit-button" class="primary-button" type="submit">提交答案</button>
         </form>
 
