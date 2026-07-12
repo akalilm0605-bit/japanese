@@ -1,0 +1,22 @@
+export const words = [
+  { word: "学校", reading: "がっこう", meaning: "学校" },
+  { word: "先生", reading: "せんせい", meaning: "老师" },
+  { word: "友達", reading: "ともだち", meaning: "朋友" },
+  { word: "家族", reading: "かぞく", meaning: "家人；家庭" },
+  { word: "時間", reading: "じかん", meaning: "时间" },
+  { word: "今日", reading: "きょう", meaning: "今天" },
+  { word: "明日", reading: "あした", meaning: "明天" },
+  { word: "昨日", reading: "きのう", meaning: "昨天" },
+  { word: "天気", reading: "てんき", meaning: "天气" },
+  { word: "電車", reading: "でんしゃ", meaning: "电车" },
+  { word: "駅", reading: "えき", meaning: "车站" },
+  { word: "会社", reading: "かいしゃ", meaning: "公司" },
+  { word: "仕事", reading: "しごと", meaning: "工作" },
+  { word: "食べる", reading: "たべる", meaning: "吃" },
+  { word: "飲む", reading: "のむ", meaning: "喝" },
+  { word: "見る", reading: "みる", meaning: "看" },
+  { word: "聞く", reading: "きく", meaning: "听；询问" },
+  { word: "話す", reading: "はなす", meaning: "说；交谈" },
+  { word: "行く", reading: "いく", meaning: "去" },
+  { word: "帰る", reading: "かえる", meaning: "回去；回家" }
+];
