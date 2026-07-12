@@ -3,7 +3,8 @@ import { calculateAccuracy, isCorrectAnswer, pickNextIndex } from "./logic.js";
 
 const elements = {
   form: document.querySelector("#answer-form"),
-  input: document.querySelector("#answer-input"),
+  wordInput: document.querySelector("#word-input"),
+  readingInput: document.querySelector("#reading-input"),
   meaning: document.querySelector("#meaning"),
   result: document.querySelector("#result"),
   submit: document.querySelector("#submit-button"),
@@ -25,13 +26,15 @@ function showNextQuestion() {
   state.currentIndex = pickNextIndex(words.length, state.currentIndex);
   state.answered = false;
   elements.meaning.textContent = words[state.currentIndex].meaning;
-  elements.input.value = "";
-  elements.input.disabled = false;
+  elements.wordInput.value = "";
+  elements.readingInput.value = "";
+  elements.wordInput.disabled = false;
+  elements.readingInput.disabled = false;
   elements.submit.disabled = false;
   elements.result.hidden = true;
   elements.result.className = "result";
   elements.next.hidden = true;
-  elements.input.focus();
+  elements.wordInput.focus();
 }
 
 function showResult(correct, item) {
@@ -48,21 +51,24 @@ function showResult(correct, item) {
 function submitAnswer(event) {
   event.preventDefault();
   if (state.answered) return;
-  const answer = elements.input.value.trim();
-  if (!answer) {
-    elements.input.focus();
-    elements.input.setCustomValidity("请先输入答案");
-    elements.input.reportValidity();
-    elements.input.setCustomValidity("");
+  const wordAnswer = elements.wordInput.value.trim();
+  const readingAnswer = elements.readingInput.value.trim();
+  if (!wordAnswer || !readingAnswer) {
+    const emptyInput = wordAnswer ? elements.readingInput : elements.wordInput;
+    emptyInput.focus();
+    emptyInput.setCustomValidity(wordAnswer ? "请填写假名" : "请填写日语汉字");
+    emptyInput.reportValidity();
+    emptyInput.setCustomValidity("");
     return;
   }
 
   state.answered = true;
   const item = words[state.currentIndex];
-  const correct = isCorrectAnswer(answer, item);
+  const correct = isCorrectAnswer(`${wordAnswer}/${readingAnswer}`, item);
   if (correct) state.correct += 1;
   else state.wrong += 1;
-  elements.input.disabled = true;
+  elements.wordInput.disabled = true;
+  elements.readingInput.disabled = true;
   elements.submit.disabled = true;
   updateScore();
   showResult(correct, item);
