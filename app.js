@@ -1,10 +1,14 @@
 import { words } from "./data.js";
-import { calculateAccuracy, isCorrectAnswer, pickNextIndex } from "./logic.js";
+import { calculateAccuracy, isCorrectParts, pickNextIndex } from "./logic.js";
 
 const elements = {
   form: document.querySelector("#answer-form"),
   wordInput: document.querySelector("#word-input"),
   readingInput: document.querySelector("#reading-input"),
+  fields: document.querySelector("#answer-fields"),
+  divider: document.querySelector("#answer-divider"),
+  label: document.querySelector("#answer-label"),
+  hint: document.querySelector("#input-hint"),
   meaning: document.querySelector("#meaning"),
   result: document.querySelector("#result"),
   submit: document.querySelector("#submit-button"),
@@ -25,23 +29,32 @@ function updateScore() {
 function showNextQuestion() {
   state.currentIndex = pickNextIndex(words.length, state.currentIndex);
   state.answered = false;
-  elements.meaning.textContent = words[state.currentIndex].meaning;
+  const item = words[state.currentIndex];
+  const hasKanji = Boolean(item.word);
+  elements.meaning.textContent = item.meaning;
   elements.wordInput.value = "";
   elements.readingInput.value = "";
+  elements.wordInput.hidden = !hasKanji;
+  elements.divider.hidden = !hasKanji;
+  elements.fields.classList.toggle("kana-only", !hasKanji);
+  elements.label.htmlFor = hasKanji ? "word-input" : "reading-input";
+  elements.label.textContent = hasKanji ? "请分别填写日语汉字和假名" : "这个词没有常用汉字，请填写假名";
+  elements.hint.textContent = hasKanji ? "中间的“/”已经固定，只需填写两边" : "这一题只需填写假名";
+  elements.readingInput.placeholder = hasKanji ? "假名：がっこう" : "请输入假名";
   elements.wordInput.disabled = false;
   elements.readingInput.disabled = false;
   elements.submit.disabled = false;
   elements.result.hidden = true;
   elements.result.className = "result";
   elements.next.hidden = true;
-  elements.wordInput.focus();
+  (hasKanji ? elements.wordInput : elements.readingInput).focus();
 }
 
 function showResult(correct, item) {
   elements.result.classList.add(correct ? "correct" : "wrong");
   elements.result.innerHTML = `
     <p class="result-title">${correct ? "回答正确！" : "这次没有答对"}</p>
-    <p><span class="answer-word" lang="ja">${item.word}</span><span class="answer-reading" lang="ja">${item.reading}</span></p>
+    <p>${item.word ? `<span class="answer-word" lang="ja">${item.word}</span>` : ""}<span class="answer-reading" lang="ja">${item.reading}</span></p>
     ${correct ? "" : `<p>中文释义：${item.meaning}</p>`}
   `;
   elements.result.hidden = false;
@@ -53,18 +66,19 @@ function submitAnswer(event) {
   if (state.answered) return;
   const wordAnswer = elements.wordInput.value.trim();
   const readingAnswer = elements.readingInput.value.trim();
-  if (!wordAnswer || !readingAnswer) {
-    const emptyInput = wordAnswer ? elements.readingInput : elements.wordInput;
+  const item = words[state.currentIndex];
+  const needsWord = Boolean(item.word);
+  if ((needsWord && !wordAnswer) || !readingAnswer) {
+    const emptyInput = !readingAnswer ? elements.readingInput : elements.wordInput;
     emptyInput.focus();
-    emptyInput.setCustomValidity(wordAnswer ? "请填写假名" : "请填写日语汉字");
+    emptyInput.setCustomValidity(!readingAnswer ? "请填写假名" : "请填写日语汉字");
     emptyInput.reportValidity();
     emptyInput.setCustomValidity("");
     return;
   }
 
   state.answered = true;
-  const item = words[state.currentIndex];
-  const correct = isCorrectAnswer(`${wordAnswer}/${readingAnswer}`, item);
+  const correct = isCorrectParts(wordAnswer, readingAnswer, item);
   if (correct) state.correct += 1;
   else state.wrong += 1;
   elements.wordInput.disabled = true;
