@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="根据中文释义练习常用日语单词拼写" />
+    <title>日语单词拼写练习</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <main class="page-shell">
+      <header class="hero">
+        <p class="eyebrow">日本語 · 每日练习</p>
+        <h1>日语单词拼写</h1>
+        <p class="subtitle">看到中文，写出对应的日语单词</p>
+      </header>
+
+      <section class="scoreboard" aria-label="本次练习成绩">
+        <div><span id="correct-count">0</span><small>正确</small></div>
+        <div><span id="wrong-count">0</span><small>错误</small></div>
+        <div><span id="accuracy">0%</span><small>正确率</small></div>
+      </section>
+
+      <section class="quiz-card">
+        <div class="question-label">这个词用日语怎么说？</div>
+        <div id="meaning" class="meaning" aria-live="polite">加载中…</div>
+
+        <form id="answer-form" novalidate>
+          <label for="answer-input">请输入日语单词</label>
+          <input
+            id="answer-input"
+            name="answer"
+            type="text"
+            lang="ja"
+            inputmode="text"
+            autocomplete="off"
+            autocapitalize="off"
+            spellcheck="false"
+            placeholder="在这里输入答案"
+          />
+          <p id="input-hint" class="input-hint">输入后按 Enter，或点击提交</p>
+          <button id="submit-button" class="primary-button" type="submit">提交答案</button>
+        </form>
+
+        <div id="result" class="result" aria-live="polite" hidden></div>
+        <button id="next-button" class="next-button" type="button" hidden>下一题 →</button>
+      </section>
+
+      <p class="footer-note">不用着急，记住一个词就是一次进步。</p>
+    </main>
+    <script type="module" src="app.js"></script>
+  </body>
+</html>
