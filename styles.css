@@ -121,6 +121,19 @@ input:focus {
 }
 
 input:disabled { color: var(--muted); background: #f3f1eb; }
+.answer-fields {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  align-items: center;
+  gap: 10px;
+}
+
+.answer-divider {
+  color: var(--green);
+  font-size: 1.55rem;
+  font-weight: 900;
+}
+
 .input-hint { margin: 8px 2px 18px; color: var(--muted); font-size: 0.82rem; }
 
 button {
@@ -158,6 +171,8 @@ button {
   .subtitle { margin-bottom: 20px; }
   .quiz-card { border-radius: 20px; }
   .meaning { min-height: 72px; margin-bottom: 22px; }
+  .answer-fields { gap: 6px; }
+  .answer-fields input { padding-inline: 11px; font-size: 1rem; }
 }
 
 @media (prefers-reduced-motion: no-preference) {
