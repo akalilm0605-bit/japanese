@@ -1,15 +1,24 @@
 export function normalizeAnswer(value) {
-  return value.normalize("NFKC").trim().replace(/\s+/g, "");
+  return value
+    .normalize("NFKC")
+    .trim()
+    .replace(/[\s〜～~]/g, "");
+}
+
+export function isCorrectParts(wordValue, readingValue, item) {
+  const expectedWord = normalizeAnswer(item.word || "");
+  const expectedReading = normalizeAnswer(item.reading);
+  const word = normalizeAnswer(wordValue || "");
+  const reading = normalizeAnswer(readingValue || "");
+
+  return word === expectedWord && reading === expectedReading;
 }
 
 export function isCorrectAnswer(value, item) {
-  const [word = "", reading = "", ...extra] = value
-    .normalize("NFKC")
-    .trim()
-    .split(/[\/／]/)
-    .map(normalizeAnswer);
-
-  return extra.length === 0 && word === item.word && reading === item.reading;
+  const parts = value.normalize("NFKC").trim().split(/[\/／]/);
+  if (parts.length === 1 && !item.word) return isCorrectParts("", parts[0], item);
+  if (parts.length !== 2) return false;
+  return isCorrectParts(parts[0], parts[1], item);
 }
 
 export function calculateAccuracy(correct, wrong) {
