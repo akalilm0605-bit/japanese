@@ -11,6 +11,7 @@ const elements = {
   hint: document.querySelector("#input-hint"),
   meaning: document.querySelector("#meaning"),
   result: document.querySelector("#result"),
+  forget: document.querySelector("#forget-button"),
   submit: document.querySelector("#submit-button"),
   next: document.querySelector("#next-button"),
   correct: document.querySelector("#correct-count"),
@@ -44,6 +45,7 @@ function showNextQuestion() {
   elements.wordInput.disabled = false;
   elements.readingInput.disabled = false;
   elements.submit.disabled = false;
+  elements.forget.disabled = false;
   elements.result.hidden = true;
   elements.result.className = "result";
   elements.next.hidden = true;
@@ -59,6 +61,19 @@ function showResult(correct, item) {
   `;
   elements.result.hidden = false;
   elements.next.hidden = false;
+}
+
+function finishQuestion(correct, item) {
+  state.answered = true;
+  if (correct) state.correct += 1;
+  else state.wrong += 1;
+  elements.wordInput.disabled = true;
+  elements.readingInput.disabled = true;
+  elements.submit.disabled = true;
+  elements.forget.disabled = true;
+  updateScore();
+  showResult(correct, item);
+  elements.next.focus();
 }
 
 function submitAnswer(event) {
@@ -77,19 +92,17 @@ function submitAnswer(event) {
     return;
   }
 
-  state.answered = true;
   const correct = isCorrectParts(wordAnswer, readingAnswer, item);
-  if (correct) state.correct += 1;
-  else state.wrong += 1;
-  elements.wordInput.disabled = true;
-  elements.readingInput.disabled = true;
-  elements.submit.disabled = true;
-  updateScore();
-  showResult(correct, item);
-  elements.next.focus();
+  finishQuestion(correct, item);
+}
+
+function forgetAnswer() {
+  if (state.answered) return;
+  finishQuestion(false, words[state.currentIndex]);
 }
 
 elements.form.addEventListener("submit", submitAnswer);
+elements.forget.addEventListener("click", forgetAnswer);
 elements.next.addEventListener("click", showNextQuestion);
 updateScore();
 showNextQuestion();
