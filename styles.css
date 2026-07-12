@@ -134,6 +134,9 @@ input:disabled { color: var(--muted); background: #f3f1eb; }
   font-weight: 900;
 }
 
+.answer-fields.kana-only { grid-template-columns: 1fr; }
+.answer-fields [hidden] { display: none; }
+
 .input-hint { margin: 8px 2px 18px; color: var(--muted); font-size: 0.82rem; }
 
 button {
