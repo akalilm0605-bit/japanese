@@ -148,9 +148,18 @@ button {
   font-weight: 800;
 }
 
+.answer-actions {
+  display: grid;
+  grid-template-columns: 0.8fr 1.2fr;
+  gap: 10px;
+}
+
 .primary-button { color: #fff; background: var(--green); }
 .primary-button:hover { background: var(--green-dark); }
 .primary-button:disabled { cursor: default; opacity: 0.55; }
+.forget-button { color: var(--muted); background: #ebe8df; }
+.forget-button:hover { color: var(--ink); background: #e1ddd2; }
+.forget-button:disabled { cursor: default; opacity: 0.55; }
 .next-button { margin-top: 14px; color: var(--green-dark); background: var(--green-soft); }
 .next-button:hover { background: #d4e6dc; }
 
@@ -176,6 +185,7 @@ button {
   .meaning { min-height: 72px; margin-bottom: 22px; }
   .answer-fields { gap: 6px; }
   .answer-fields input { padding-inline: 11px; font-size: 1rem; }
+  .answer-actions { grid-template-columns: 1fr 1.3fr; gap: 8px; }
 }
 
 @media (prefers-reduced-motion: no-preference) {
