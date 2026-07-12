@@ -3,8 +3,13 @@ export function normalizeAnswer(value) {
 }
 
 export function isCorrectAnswer(value, item) {
-  const answer = normalizeAnswer(value);
-  return answer === item.word || answer === item.reading;
+  const [word = "", reading = "", ...extra] = value
+    .normalize("NFKC")
+    .trim()
+    .split(/[\/／]/)
+    .map(normalizeAnswer);
+
+  return extra.length === 0 && word === item.word && reading === item.reading;
 }
 
 export function calculateAccuracy(correct, wrong) {
