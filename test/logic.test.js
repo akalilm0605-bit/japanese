@@ -12,11 +12,13 @@ test("答案会去掉前后空格和中间空格", () => {
   assert.equal(normalizeAnswer("  学 校 "), "学校");
 });
 
-test("汉字和假名都可以判定为正确", () => {
+test("必须同时正确填写汉字和假名", () => {
   const item = { word: "学校", reading: "がっこう" };
-  assert.equal(isCorrectAnswer("学校", item), true);
-  assert.equal(isCorrectAnswer("がっこう", item), true);
-  assert.equal(isCorrectAnswer("先生", item), false);
+  assert.equal(isCorrectAnswer("学校/がっこう", item), true);
+  assert.equal(isCorrectAnswer("学校 ／ がっこう", item), true);
+  assert.equal(isCorrectAnswer("学校", item), false);
+  assert.equal(isCorrectAnswer("がっこう", item), false);
+  assert.equal(isCorrectAnswer("学校/せんせい", item), false);
 });
 
 test("正确率计算正确", () => {
