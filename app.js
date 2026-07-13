@@ -10,6 +10,7 @@ const elements = {
   label: document.querySelector("#answer-label"),
   hint: document.querySelector("#input-hint"),
   meaning: document.querySelector("#meaning"),
+  speak: document.querySelector("#speak-button"),
   result: document.querySelector("#result"),
   forget: document.querySelector("#forget-button"),
   submit: document.querySelector("#submit-button"),
@@ -20,6 +21,20 @@ const elements = {
 };
 
 const state = { currentIndex: -1, correct: 0, wrong: 0, answered: false };
+
+function speakJapanese(item = words[state.currentIndex]) {
+  if (!("speechSynthesis" in window) || !item) return;
+  window.speechSynthesis.cancel();
+  const utterance = new SpeechSynthesisUtterance(item.reading.replace(/[〜～~]/g, ""));
+  utterance.lang = "ja-JP";
+  utterance.rate = 0.85;
+  utterance.pitch = 1;
+  const japaneseVoice = window.speechSynthesis
+    .getVoices()
+    .find((voice) => voice.lang.toLowerCase().startsWith("ja"));
+  if (japaneseVoice) utterance.voice = japaneseVoice;
+  window.speechSynthesis.speak(utterance);
+}
 
 function updateScore() {
   elements.correct.textContent = state.correct;
@@ -50,6 +65,7 @@ function showNextQuestion() {
   elements.result.className = "result";
   elements.next.hidden = true;
   (hasKanji ? elements.wordInput : elements.readingInput).focus();
+  speakJapanese(item);
 }
 
 function showResult(correct, item) {
@@ -73,6 +89,7 @@ function finishQuestion(correct, item) {
   elements.forget.disabled = true;
   updateScore();
   showResult(correct, item);
+  speakJapanese(item);
   elements.next.focus();
 }
 
@@ -103,6 +120,11 @@ function forgetAnswer() {
 
 elements.form.addEventListener("submit", submitAnswer);
 elements.forget.addEventListener("click", forgetAnswer);
+elements.speak.addEventListener("click", () => speakJapanese());
 elements.next.addEventListener("click", showNextQuestion);
+if (!("speechSynthesis" in window)) {
+  elements.speak.disabled = true;
+  elements.speak.textContent = "当前浏览器不支持语音";
+}
 updateScore();
 showNextQuestion();
