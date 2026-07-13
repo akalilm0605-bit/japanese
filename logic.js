@@ -26,6 +26,15 @@ export function calculateAccuracy(correct, wrong) {
   return total === 0 ? 0 : Math.round((correct / total) * 100);
 }
 
+export function createUnits(items, unitSize = 50) {
+  if (unitSize < 1) return [];
+  const units = [];
+  for (let index = 0; index < items.length; index += unitSize) {
+    units.push(items.slice(index, index + unitSize));
+  }
+  return units;
+}
+
 export function pickNextIndex(length, previousIndex, random = Math.random) {
   if (length <= 1) return 0;
   let index = Math.floor(random() * length);
