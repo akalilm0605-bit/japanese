@@ -1,7 +1,17 @@
 import { words } from "./data.js";
-import { calculateAccuracy, isCorrectParts, pickNextIndex } from "./logic.js";
+import { calculateAccuracy, createUnits, isCorrectParts, pickNextIndex } from "./logic.js";
+
+const UNIT_SIZE = 50;
+const STORAGE_KEY = "japanese-n5-unit-progress-v1";
+const units = createUnits(words, UNIT_SIZE);
 
 const elements = {
+  unitSelection: document.querySelector("#unit-selection"),
+  unitList: document.querySelector("#unit-list"),
+  practiceScreen: document.querySelector("#practice-screen"),
+  unitTitle: document.querySelector("#current-unit-title"),
+  unitRange: document.querySelector("#unit-range"),
+  changeUnit: document.querySelector("#change-unit-button"),
   form: document.querySelector("#answer-form"),
   wordInput: document.querySelector("#word-input"),
   readingInput: document.querySelector("#reading-input"),
@@ -15,14 +25,72 @@ const elements = {
   forget: document.querySelector("#forget-button"),
   submit: document.querySelector("#submit-button"),
   next: document.querySelector("#next-button"),
+  practiced: document.querySelector("#practiced-count"),
   correct: document.querySelector("#correct-count"),
   wrong: document.querySelector("#wrong-count"),
   accuracy: document.querySelector("#accuracy")
 };
 
-const state = { currentIndex: -1, correct: 0, wrong: 0, answered: false };
+const state = {
+  unitIndex: -1,
+  currentIndex: -1,
+  activeWords: [],
+  answered: false,
+  progress: loadProgress()
+};
 
-function speakJapanese(item = words[state.currentIndex]) {
+function emptyProgress() {
+  return { correct: 0, wrong: 0, seen: [] };
+}
+
+function loadProgress() {
+  try {
+    const saved = JSON.parse(localStorage.getItem(STORAGE_KEY));
+    if (!Array.isArray(saved)) return units.map(emptyProgress);
+    return units.map((_, index) => ({
+      correct: Number(saved[index]?.correct) || 0,
+      wrong: Number(saved[index]?.wrong) || 0,
+      seen: Array.isArray(saved[index]?.seen) ? saved[index].seen.filter(Number.isInteger) : []
+    }));
+  } catch {
+    return units.map(emptyProgress);
+  }
+}
+
+function saveProgress() {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(state.progress));
+  } catch {
+    // 浏览器禁止本地保存时，答题功能仍然可以正常使用。
+  }
+}
+
+function getCurrentProgress() {
+  return state.progress[state.unitIndex] || emptyProgress();
+}
+
+function renderUnitList() {
+  elements.unitList.innerHTML = units.map((unit, index) => {
+    const progress = state.progress[index] || emptyProgress();
+    const completed = Math.min(new Set(progress.seen).size, unit.length);
+    const percent = Math.round((completed / unit.length) * 100);
+    const accuracy = calculateAccuracy(progress.correct, progress.wrong);
+    const start = index * UNIT_SIZE + 1;
+    const end = start + unit.length - 1;
+    return `
+      <button class="unit-card" type="button" data-unit-index="${index}">
+        <span class="unit-card-top">
+          <strong>第${index + 1}单元</strong>
+          <small>${start}–${end}词</small>
+        </span>
+        <span class="unit-progress" aria-hidden="true"><span style="width: ${percent}%"></span></span>
+        <span class="unit-card-meta">已练 ${completed}/${unit.length} · 正确率 ${accuracy}%</span>
+      </button>
+    `;
+  }).join("");
+}
+
+function speakJapanese(item = state.activeWords[state.currentIndex]) {
   if (!("speechSynthesis" in window) || !item) return;
   window.speechSynthesis.cancel();
   const utterance = new SpeechSynthesisUtterance(item.reading.replace(/[〜～~]/g, ""));
@@ -37,15 +105,51 @@ function speakJapanese(item = words[state.currentIndex]) {
 }
 
 function updateScore() {
-  elements.correct.textContent = state.correct;
-  elements.wrong.textContent = state.wrong;
-  elements.accuracy.textContent = `${calculateAccuracy(state.correct, state.wrong)}%`;
+  const progress = getCurrentProgress();
+  const total = state.activeWords.length || UNIT_SIZE;
+  const completed = Math.min(new Set(progress.seen).size, total);
+  elements.practiced.textContent = `${completed}/${total}`;
+  elements.correct.textContent = progress.correct;
+  elements.wrong.textContent = progress.wrong;
+  elements.accuracy.textContent = `${calculateAccuracy(progress.correct, progress.wrong)}%`;
+}
+
+function startUnit(index) {
+  if (!units[index]) return;
+  state.unitIndex = index;
+  state.activeWords = units[index];
+  state.currentIndex = -1;
+  state.answered = false;
+  const start = index * UNIT_SIZE + 1;
+  const end = start + state.activeWords.length - 1;
+  elements.unitTitle.textContent = `第${index + 1}单元`;
+  elements.unitRange.textContent = `第 ${start}–${end} 词 · 共${state.activeWords.length}词`;
+  elements.unitSelection.hidden = true;
+  elements.practiceScreen.hidden = false;
+  updateScore();
+  showNextQuestion();
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
+function changeUnit() {
+  if ("speechSynthesis" in window) window.speechSynthesis.cancel();
+  elements.practiceScreen.hidden = true;
+  elements.unitSelection.hidden = false;
+  renderUnitList();
+  document.querySelector(".unit-card")?.focus();
+  window.scrollTo({ top: 0, behavior: "smooth" });
 }
 
 function showNextQuestion() {
-  state.currentIndex = pickNextIndex(words.length, state.currentIndex);
+  const seen = new Set(getCurrentProgress().seen);
+  const unseenIndexes = state.activeWords
+    .map((_, index) => index)
+    .filter((index) => !seen.has(index) && index !== state.currentIndex);
+  state.currentIndex = unseenIndexes.length
+    ? unseenIndexes[Math.floor(Math.random() * unseenIndexes.length)]
+    : pickNextIndex(state.activeWords.length, state.currentIndex);
   state.answered = false;
-  const item = words[state.currentIndex];
+  const item = state.activeWords[state.currentIndex];
   const hasKanji = Boolean(item.word);
   elements.meaning.textContent = item.meaning;
   elements.wordInput.value = "";
@@ -81,8 +185,11 @@ function showResult(correct, item) {
 
 function finishQuestion(correct, item) {
   state.answered = true;
-  if (correct) state.correct += 1;
-  else state.wrong += 1;
+  const progress = getCurrentProgress();
+  if (correct) progress.correct += 1;
+  else progress.wrong += 1;
+  if (!progress.seen.includes(state.currentIndex)) progress.seen.push(state.currentIndex);
+  saveProgress();
   elements.wordInput.disabled = true;
   elements.readingInput.disabled = true;
   elements.submit.disabled = true;
@@ -98,7 +205,7 @@ function submitAnswer(event) {
   if (state.answered) return;
   const wordAnswer = elements.wordInput.value.trim();
   const readingAnswer = elements.readingInput.value.trim();
-  const item = words[state.currentIndex];
+  const item = state.activeWords[state.currentIndex];
   const needsWord = Boolean(item.word);
   if ((needsWord && !wordAnswer) || !readingAnswer) {
     const emptyInput = !readingAnswer ? elements.readingInput : elements.wordInput;
@@ -108,23 +215,27 @@ function submitAnswer(event) {
     emptyInput.setCustomValidity("");
     return;
   }
-
-  const correct = isCorrectParts(wordAnswer, readingAnswer, item);
-  finishQuestion(correct, item);
+  finishQuestion(isCorrectParts(wordAnswer, readingAnswer, item), item);
 }
 
 function forgetAnswer() {
   if (state.answered) return;
-  finishQuestion(false, words[state.currentIndex]);
+  finishQuestion(false, state.activeWords[state.currentIndex]);
 }
 
+elements.unitList.addEventListener("click", (event) => {
+  const card = event.target.closest("[data-unit-index]");
+  if (card) startUnit(Number(card.dataset.unitIndex));
+});
+elements.changeUnit.addEventListener("click", changeUnit);
 elements.form.addEventListener("submit", submitAnswer);
 elements.forget.addEventListener("click", forgetAnswer);
 elements.speak.addEventListener("click", () => speakJapanese());
 elements.next.addEventListener("click", showNextQuestion);
+
 if (!("speechSynthesis" in window)) {
   elements.speak.disabled = true;
   elements.speak.textContent = "当前浏览器不支持语音";
 }
-updateScore();
-showNextQuestion();
+
+renderUnitList();
