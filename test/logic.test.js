@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { words } from "../data.js";
-import { calculateAccuracy, isCorrectAnswer, isCorrectParts, normalizeAnswer, pickNextIndex } from "../logic.js";
+import { calculateAccuracy, createUnits, isCorrectAnswer, isCorrectParts, normalizeAnswer, pickNextIndex } from "../logic.js";
 
 test("内置数据有 674 个完整词条", () => {
   assert.equal(words.length, 674);
@@ -31,6 +31,13 @@ test("没有常用汉字的词只检查假名", () => {
 test("接续符号不需要输入", () => {
   const item = { word: "〜回", reading: "〜かい" };
   assert.equal(isCorrectParts("回", "かい", item), true);
+});
+
+test("674个词按每50词分成14个单元", () => {
+  const units = createUnits(words, 50);
+  assert.equal(units.length, 14);
+  assert.equal(units[0].length, 50);
+  assert.equal(units[13].length, 24);
 });
 
 test("正确率计算正确", () => {
